@@ -1,0 +1,9 @@
+[Unit]
+Description=GPIO Web interface
+
+[Service]
+ExecStart=/usr/local/gpioweb/app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

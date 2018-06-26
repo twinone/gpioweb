@@ -1,0 +1,110 @@
+<html><head>
+	<title>gpio-web example</title>
+	<style type="text/css">
+	body {
+		background-color: #f8f8f8;
+	}
+	.container {
+		text-align: center;
+	}
+	#pins-table {
+		margin: 0 auto;
+	}
+	.pin {
+		border: 2px solid black;
+		border-radius: 1em;
+		text-align: center;
+		width: 2.5em;
+		height: 3em;
+
+		-webkit-user-select: none; /* Safari */        
+		-moz-user-select: none; /* Firefox */
+		-ms-user-select: none; /* IE10+/Edge */
+		user-select: none; /* Standard */
+	}
+	td {
+		text-align: center;
+	}
+	/** Ground pin */
+	.pin.gnd {
+		background-color: #000;
+		color: #fff;
+	}
+	.pin.volt1 {
+		background-color: orange;
+	}
+	.pin.volt2 {
+		background-color: orange;
+	}
+	/** All pins that you can turn on and off */
+	.pin.clickable {
+		cursor:	pointer;
+	}
+	.pin.high {
+		background-color: #2ecc71;
+	}
+	.pin.low {
+		background-color: #e74c3c;
+	}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<table id="pins-table">
+	</div>
+	<script src="js/jquery.min.js"></script>
+	<script type="text/javascript">
+		let GPIOS = [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26,29,31,32,33,35,36,37,38,40]
+		let GNDS = [6,9,14,20,25,30,34,39]
+		let POWER3v3 = [1, 17]
+		let POWER5v = [2, 4]
+
+		function init() {
+			$("#pins-table").append('<tr id="labels-top"></tr><tr id="top">'
+				+'</tr><tr id="bottom"></tr><tr id="labels-bottom"></tr>'); 	
+			for(var i = 1; i < 40; i +=2) {
+				$("tr#labels-top").append('<td class="label" id="label' + (i+1) + '">DNC</td>');
+				$("tr#top").append('<td class="pin" id="pin' + (i+1) + '">'+(i+1)+'</td>');
+				$("tr#bottom").append('<td class="pin" id="pin' + i + '">'+i+'</td>');
+				$("tr#labels-bottom").append('<td class="label" id="label' + i + '">DNC</td>');
+			}
+			POWER3v3.forEach((n) => {
+				$('#pin'+n).addClass('volt1')
+				$('#label'+n).text('3V3')
+			})
+			POWER5v.forEach((n) => {
+				$('#pin'+n).addClass('volt2')
+				$('#label'+n).text('5V')
+			})
+
+			GNDS.forEach((n) => {
+				$('#pin'+n).addClass('gnd')
+				$('#label'+n).text('GND')
+			})
+			GPIOS.forEach((n) => {
+				$('#pin'+n).addClass('clickable')
+				$('#label'+n).text('IO')				
+			})
+
+			$(".pin").on("click", function() {
+				if (!$(this).hasClass("clickable")) {
+					return;
+				}
+				var id = $(this).attr("id")
+				var val = $(this).hasClass("high")
+				var pin = id.slice(3);
+				let newVal = val?"low":"high"
+				$(this).removeClass('high low').addClass(newVal);
+				$.get('../out/'+pin+'/'+newVal)
+			});
+		}
+
+		init()
+
+
+
+</script>
+
+
+</body></html>
