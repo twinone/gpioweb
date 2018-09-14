@@ -18,7 +18,7 @@ DIGITAL_VALUES = {
 
 @app.route('/')
 def index():
-    return 'Hello, World!'
+    return redirect("/static/index.html", code=302)
 
 @app.route('/setup/<int:pin>/<mode>')
 def handle_setup(pin, mode):
