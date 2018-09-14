@@ -16,5 +16,10 @@ sudo ln -s /usr/local/gpioweb/gpioweb.service /etc/systemd/system/
 # Auto-start at boot
 sudo systemctl gpioweb enable
 # Actually start the service
-sudo systemctl gpioweb start
+sudo systemctl start gpioweb
 ```
+
+
+# Usage
+
+Visit http://raspberrypi.local:5000/ to see the example running
