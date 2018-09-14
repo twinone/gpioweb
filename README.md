@@ -14,7 +14,7 @@ sudo git clone https://github.com/twinone/gpioweb /usr/local/gpioweb
 # Create a systemd script to auto start the service
 sudo ln -s /usr/local/gpioweb/gpioweb.service /etc/systemd/system/
 # Auto-start at boot
-sudo systemctl gpioweb enable
+sudo systemctl enable gpioweb
 # Actually start the service
 sudo systemctl start gpioweb
 ```
