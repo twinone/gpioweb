@@ -34,7 +34,7 @@ export const RelayComponent = function(props) {
     }
 
     return(<div className='relay'>
-        <div className={'header ' + relayStatus.status === 'on' ? 'on' : 'off'}>{relay.GPIO}</div>
+        <div className={'header ' + (relayStatus.status === 'on' ? 'on' : 'off')}>{relay.GPIO}</div>
         <button onClick={handleStartStopClick}>{relayStatus.text}</button>
         </div>)
 }

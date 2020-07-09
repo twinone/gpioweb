@@ -1,0 +1,7 @@
+.relaysContainer {
+    display: flex;
+    flex-wrap: wrap;
+}
+.relaysContainer > * {
+    margin: 10px;
+}

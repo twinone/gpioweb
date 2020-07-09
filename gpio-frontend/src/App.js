@@ -2,14 +2,14 @@ import React from 'react';
 import './App.css';
 import { Config } from './Config';
 import { RelayComponent } from './components/relay/relay';
+import { RelaysComponent } from './components/relays/relays';
 
 function App() {
   const apiUrl = Config.ApiUrl;
   return (
 <>
-  <p>{`api url: ${apiUrl}`}</p>
   <div>
-    <RelayComponent relay={{GPIO: 40, direction: 1, value: 0}}/>
+    <RelaysComponent />
   </div>
 </>
   );
