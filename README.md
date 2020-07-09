@@ -10,7 +10,7 @@ pip3 install Flask
 
 # Installation
 ```
-sudo git clone https://github.com/twinone/gpioweb /usr/local/gpioweb
+sudo git clone https://github.com/marians20/gpioweb.git /usr/local/gpioweb
 # Create a systemd script to auto start the service
 sudo ln -s /usr/local/gpioweb/gpioweb.service /etc/systemd/system/
 # Auto-start at boot
