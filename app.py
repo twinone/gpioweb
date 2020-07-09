@@ -6,6 +6,13 @@ from flask import Flask, jsonify, abort, send_from_directory, redirect
 app = Flask(__name__)
 
 GPIOS = [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26,29,31,32,33,35,36,37,38,40]
+
+DEVS = []
+
+for gpio in GPIOS:
+	DEVS.append({'GPIO': gpio, 'direction':GPIO.OUT, 'value':GPIO.LOW})
+
+
 PIN_MODES = {
 	"out": GPIO.OUT,
 	"in": GPIO.IN,
@@ -16,9 +23,21 @@ DIGITAL_VALUES = {
 	"low": GPIO.LOW,
 }
 
+RELAY_VALUES = {
+	"on": GPIO.HIGH,
+	"off": GPIO.LOW,
+}
+
 @app.route('/')
 def index():
     return redirect("/static/index.html", code=302)
+
+@app.route('/status')
+def handle_status():
+	for dev in DEVS:
+		dev["value"] = GPIO.input(dev["GPIO"])
+
+	return jsonify({'status':'ok','devs':DEVS})
 
 @app.route('/setup/<int:pin>/<mode>')
 def handle_setup(pin, mode):
@@ -26,7 +45,13 @@ def handle_setup(pin, mode):
 	if mode not in PIN_MODES.keys() or pin not in GPIOS:
 		return abort(400)
 	GPIO.setup(pin, PIN_MODES[mode])
-	return jsonify({'status':'ok'})
+	for dev in DEVS:
+		if dev["GPIO"] == pin:
+			dev["direction"] = PIN_MODES[mode]
+
+		dev["value"] = GPIO.input(dev["GPIO"])
+
+	return jsonify({'status':'ok','devs':DEVS})
 
 
 @app.route('/out/<int:pin>/<value>')
@@ -36,8 +61,37 @@ def handle_output(pin, value):
 		return abort(400)
 	GPIO.setup(pin, GPIO.OUT)
 	GPIO.output(pin, DIGITAL_VALUES[value])
-	return jsonify({'status':'ok'})
+	for dev in DEVS:
+		if dev["GPIO"] == pin:
+			dev["direction"] = GPIO.OUT
+			dev["value"] = DIGITAL_VALUES[value]
 
+		dev["value"] = GPIO.input(dev["GPIO"])
+
+	return jsonify({'status':'ok', 'devs':DEVS})
+
+@app.route('/relay/<int:pin>/<value>')
+def handle_rely(pin, value):
+	value = value.lower()
+	if value not in RELAY_VALUES.keys() or pin not in GPIOS:
+ 		return abort(400)
+	if value == 'on':
+		GPIO.setup(pin, GPIO.OUT)
+		GPIO.setup(pin, GPIO.LOW)
+	else:
+		GPIO.setup(pin, GPIO.IN)
+
+	for dev in DEVS:
+		if dev["GPIO"] == pin:
+			if value == 'on':
+				dev["direction"] = GPIO.OUT
+				dev["value"] = GPIO.LOW
+			else:
+				dev["direction"] = GPIO.IN
+
+		dev["value"] = GPIO.input(dev["GPIO"])
+
+	return jsonify({'status':'ok', 'devs':DEVS})
 
 @app.route('/static/<path:path>')
 def handle_static(path):
@@ -46,7 +100,8 @@ def handle_static(path):
 def setupGPIO():
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BOARD)
-	GPIO.setup(11, GPIO.OUT)
+	for dev in DEVS:
+		GPIO.setup(dev["GPIO"], GPIO.IN)
 
 
 
