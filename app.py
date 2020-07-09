@@ -28,6 +28,13 @@ RELAY_VALUES = {
 	"off": GPIO.LOW,
 }
 
+def is_pin_valid(pin):
+	for dev in DEVS:
+		if dev["GPIO"] == pin:
+			return True
+
+	return False
+
 @app.route('/')
 def index():
     return redirect("/static/index.html", code=302)
@@ -57,8 +64,12 @@ def handle_setup(pin, mode):
 @app.route('/out/<int:pin>/<value>')
 def handle_output(pin, value):
 	value = value.lower()
-	if value not in DIGITAL_VALUES.keys() or pin not in GPIOS:
-		return abort(400)
+	if value not in DIGITAL_VALUES.keys():
+		return app.response_class(response=json.dumps({'status':'fail', 'reason':'invalid pin specified (' + pin + ')'}), status=400, mimetype='application/json')
+
+	if not is_pin_valid(pin):
+		return jsonify({'status':'fail', 'reason': 'invalid pin specified (' + pin + ')'}), 400
+
 	GPIO.setup(pin, GPIO.OUT)
 	GPIO.output(pin, DIGITAL_VALUES[value])
 	for dev in DEVS:
@@ -68,13 +79,16 @@ def handle_output(pin, value):
 
 		dev["value"] = GPIO.input(dev["GPIO"])
 
-	return jsonify({'status':'ok', 'devs':DEVS})
+	return jsonify({'status':'ok', 'devs':DEVS}), 200
 
 @app.route('/relay/<int:pin>/<value>')
 def handle_rely(pin, value):
 	value = value.lower()
-	if value not in RELAY_VALUES.keys() or pin not in GPIOS:
+	if value not in RELAY_VALUES.keys():
  		return abort(400)
+
+	if not is_pin_valid(pin):
+		return jsonify({'status':'fail', 'reason': 'invalid pin specified (' + pin + ')'}), 400
 	if value == 'on':
 		GPIO.setup(pin, GPIO.OUT)
 		GPIO.setup(pin, GPIO.LOW)
@@ -91,7 +105,7 @@ def handle_rely(pin, value):
 
 		dev["value"] = GPIO.input(dev["GPIO"])
 
-	return jsonify({'status':'ok', 'devs':DEVS})
+	return jsonify({'status':'ok', 'devs':DEVS}), 200
 
 @app.route('/static/<path:path>')
 def handle_static(path):
