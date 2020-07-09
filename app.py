@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import RPi.GPIO as GPIO
-from flask import Flask, jsonify, abort, send_from_directory
+from flask import Flask, jsonify, abort, send_from_directory, redirect
 
 app = Flask(__name__)
 
