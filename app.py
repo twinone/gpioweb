@@ -2,8 +2,10 @@
 
 import RPi.GPIO as GPIO
 from flask import Flask, jsonify, abort, send_from_directory, redirect
+from flask_cors import CORS
 
 app = Flask(__name__)
+cors = CORS(app)
 
 GPIOS = [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26,29,31,32,33,35,36,37,38,40]
 
