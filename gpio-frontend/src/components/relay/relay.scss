@@ -1,0 +1,18 @@
+.relay{
+    display: flex;
+    flex-direction: column;
+    width: 5em;
+    background-color: #a8a6a6;
+
+    .header {
+       text-align: center;
+    }
+    .on {
+        background-color: #00FF00;
+        color: #222;       
+    }
+    .off {
+        background-color: #222;
+        color: #fafafa;         
+    }
+}
