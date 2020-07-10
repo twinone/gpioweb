@@ -15,4 +15,13 @@
         background-color: #222;
         color: #fafafa;         
     }
+
+    .body {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        height: 3em;
+        align-items: flex-start;
+        padding: 0.5em;
+    }
 }
