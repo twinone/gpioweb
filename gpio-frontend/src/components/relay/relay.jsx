@@ -1,11 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect  } from 'react'
 import Axios from 'axios';
 import lodash from 'lodash';
+
+
 import './relay.scss';
 import { Config } from './../../Config';
-import { RelayStatuses } from '../../modules/relay';
 
 export const RelayComponent = function(props) {
+
+    const onStatusChanged = {...props}.onStatusChanged;
+
     const [relay, setRelay] = useState({...props}.relay);
 
     function setGpio(pin, value) {
@@ -18,6 +22,7 @@ export const RelayComponent = function(props) {
 
     function handleStartStopClick() {
         relay.toggle();
+        onStatusChanged && onStatusChanged(relay.getStatus().status);
         setRelay(lodash.cloneDeep(relay));
         setGpio(relay.GPIO, relay.getStatus().status);
     }
