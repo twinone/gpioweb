@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
 
+import threading
 import RPi.GPIO as GPIO
 from flask import Flask, jsonify, abort, send_from_directory, redirect
 from flask_cors import CORS
+from flask_socketio import SocketIO
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'vnkdjnfjknfl1232#'
 cors = CORS(app)
+socketio = SocketIO(app)
 
 GPIOS = [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26,29,31,32,33,35,36,37,38,40]
 
 DEVS = []
 
 for gpio in GPIOS:
-	DEVS.append({'GPIO': gpio, 'direction':GPIO.OUT, 'value':GPIO.LOW})
+	DEVS.append({'title': gpio, 'GPIO': gpio, 'direction':GPIO.OUT, 'value':GPIO.LOW})
 
 
 PIN_MODES = {
@@ -57,10 +61,9 @@ def handle_setup(pin, mode):
 	for dev in DEVS:
 		if dev["GPIO"] == pin:
 			dev["direction"] = PIN_MODES[mode]
+			dev["value"] = GPIO.input(dev["GPIO"])
 
-		dev["value"] = GPIO.input(dev["GPIO"])
-
-	return jsonify({'status':'ok','devs':DEVS})
+	return jsonify({'status':'ok'})
 
 
 @app.route('/out/<int:pin>/<value>')
@@ -79,9 +82,8 @@ def handle_output(pin, value):
 			dev["direction"] = GPIO.OUT
 			dev["value"] = DIGITAL_VALUES[value]
 
-		dev["value"] = GPIO.input(dev["GPIO"])
 
-	return jsonify({'status':'ok', 'devs':DEVS}), 200
+	return jsonify({'status':'ok'}), 200
 
 @app.route('/relay/<int:pin>/<value>')
 def handle_rely(pin, value):
@@ -93,7 +95,7 @@ def handle_rely(pin, value):
 		return jsonify({'status':'fail', 'reason': 'invalid pin specified (' + pin + ')'}), 400
 	if value == 'on':
 		GPIO.setup(pin, GPIO.OUT)
-		GPIO.setup(pin, GPIO.LOW)
+		GPIO.output(pin, GPIO.LOW)
 	else:
 		GPIO.setup(pin, GPIO.IN)
 
@@ -105,22 +107,44 @@ def handle_rely(pin, value):
 			else:
 				dev["direction"] = GPIO.IN
 
-		dev["value"] = GPIO.input(dev["GPIO"])
 
-	return jsonify({'status':'ok', 'devs':DEVS}), 200
+	return jsonify({'status':'ok'}), 200
 
 @app.route('/static/<path:path>')
 def handle_static(path):
 	send_from_directory('static', path)
+
+def messageReceived(methods=['GET', 'POST']):
+    print('message was received!!!')
+
+
+@socketio.on('connect')
+def test_connect():
+    emit('my response', {'data': 'Connected'})
+
+@socketio.on('json')
+def handle_json(json):
+    print('received json: ' + str(json))
+
+@socketio.on('my event')
+def handle_my_custom_event(json, methods=['GET', 'POST']):
+    print('received my event: ' + str(json))
+    socketio.emit('my response', json, callback=messageReceived)
 
 def setupGPIO():
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BOARD)
 	for dev in DEVS:
 		GPIO.setup(dev["GPIO"], GPIO.IN)
+		#GPIO.output(dev["GPIO"], GPIO.HIGH)
 
+def runApp():
+	app.run(debug=True, host='0.0.0.0')
 
 
 if __name__ == '__main__':
 	setupGPIO()
-	app.run(debug=True, host='0.0.0.0')
+	#print('Start app')
+	#app.run(debug=True, host='0.0.0.0')
+	#print('Start socketio')
+	socketio.run(app, port=5000, host='0.0.0.0')
