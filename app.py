@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import threading
+import json
 import RPi.GPIO as GPIO
 from flask import Flask, jsonify, abort, send_from_directory, redirect
 from flask_cors import CORS
@@ -108,6 +109,7 @@ def handle_rely(pin, value):
 			else:
 				dev["direction"] = GPIO.IN
 
+			socketio.emit('API event', json.dumps(dev), callback=messageReceived)
 
 	return jsonify({'status':'ok'}), 200
 
@@ -128,10 +130,11 @@ def test_connect():
 def handle_json(json):
     print('received json: ' + str(json))
 
-@socketio.on('my event')
+@socketio.on('relay_changed')
 def handle_my_custom_event(json, methods=['GET', 'POST']):
-    print('###### received my event: ' + str(json))
-    #socketio.emit('my response', json, callback=messageReceived)
+    print('###### received relay_changed: ' + str(json))
+    socketio.emit('API event', json, callback=messageReceived)
+
 
 def setupGPIO():
 	GPIO.setwarnings(False)
