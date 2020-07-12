@@ -43,19 +43,16 @@ export class Relay {
     };
 
     turnOn() {
-        console.log(`Turn ON: direction = ${RelayStatuses.ON.direction}, value = ${RelayStatuses.ON.value}`);
         this.direction = RelayStatuses.ON.direction;
         this.value = RelayStatuses.ON.value;
     }
 
     turnOff() {
-        console.log(`Turn OFF: direction = ${RelayStatuses.OFF.direction}, value = ${RelayStatuses.OFF.value}`);
         this.direction = RelayStatuses.OFF.direction;
         this.value = RelayStatuses.OFF.value;
     }
 
     toggle() {
-        console.log(`Toggle from ${this.getStatus().status}`);
         if(this.getStatus().status === RelayStatuses.ON.status) {
             this.turnOff();
         } else {
