@@ -9,7 +9,8 @@ from flask_socketio import SocketIO
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'vnkdjnfjknfl1232#'
 cors = CORS(app)
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
+
 
 GPIOS = [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26,29,31,32,33,35,36,37,38,40]
 
@@ -120,7 +121,8 @@ def messageReceived(methods=['GET', 'POST']):
 
 @socketio.on('connect')
 def test_connect():
-    emit('my response', {'data': 'Connected'})
+    print('Connect event received!')
+    #emit('my response', {'data': 'Connected'})
 
 @socketio.on('json')
 def handle_json(json):
@@ -128,8 +130,8 @@ def handle_json(json):
 
 @socketio.on('my event')
 def handle_my_custom_event(json, methods=['GET', 'POST']):
-    print('received my event: ' + str(json))
-    socketio.emit('my response', json, callback=messageReceived)
+    print('###### received my event: ' + str(json))
+    #socketio.emit('my response', json, callback=messageReceived)
 
 def setupGPIO():
 	GPIO.setwarnings(False)
