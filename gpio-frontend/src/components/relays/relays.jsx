@@ -3,6 +3,7 @@ import Axios from 'axios'
 import './relays.scss'
 import { Config } from './../../Config';
 import { RelayComponent } from '../relay/relay';
+import { Relay } from '../../modules/relay';
 
 export const RelaysComponent = function() {
 
@@ -20,7 +21,7 @@ export const RelaysComponent = function() {
     return(<>
     <h1>Relays</h1>
     <div className="relaysContainer">
-        {relays.map( (relay, index) => (<RelayComponent key={index} relay={relay} />))}
+        {relays.map( (relay, index) => (<RelayComponent key={index} relay={new Relay(relay.GPIO, relay.value, relay.direction, relay.title)} />))}
     </div>
     </>);
 }
