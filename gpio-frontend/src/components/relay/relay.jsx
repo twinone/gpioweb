@@ -14,11 +14,15 @@ export const RelayComponent = function(props) {
 
     function setGpio(pin, value) {
         Axios.get(`${Config.ApiUrl}/relay/${relay.GPIO}/${value}`)
-            .then(response => console.log(response))
+            .then(response => {})
             .catch(error => {
                 console.log(error);
             });
     }
+
+    useEffect(() => {
+        console.log('Relay changed');
+    }, [relay])
 
     function handleStartStopClick() {
         relay.toggle();
