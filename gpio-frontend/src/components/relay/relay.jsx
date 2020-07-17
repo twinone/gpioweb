@@ -1,40 +1,30 @@
-import React, { useState, useEffect  } from 'react'
-import Axios from 'axios';
+import React, { useState } from 'react'
 import lodash from 'lodash';
-
-
 import './relay.scss';
-import { Config } from './../../Config';
 
 export const RelayComponent = function(props) {
-
-    const onStatusChanged = {...props}.onStatusChanged;
-
-    const [relay, setRelay] = useState({...props}.relay);
-
-    function setGpio(pin, value) {
-        Axios.get(`${Config.ApiUrl}/relay/${relay.GPIO}/${value}`)
-            .then(response => {})
-            .catch(error => {
-                console.log(error);
-            });
-    }
-
-    useEffect(() => {
-        console.log('Relay changed');
-    }, [relay])
+    const onToggle = props.onToggle;
+    const [relay, setRelay] = useState(props.relay);
 
     function handleStartStopClick() {
         relay.toggle();
-        onStatusChanged && onStatusChanged(relay.getStatus().status);
+        onToggle && onToggle(relay);
         setRelay(lodash.cloneDeep(relay));
-        setGpio(relay.GPIO, relay.getStatus().status);
+    }
+
+    function getButtonText(status) {
+        switch(status) {
+            case 'on':
+                return 'Turn off';
+            default:
+                return 'Turn on';
+        }
     }
 
     return(<div className='relay'>
-        <div className={'header ' + (relay.getStatus().status === 'on' ? 'on' : 'off')}>{relay.GPIO}</div>
+        <div className={'header ' + (relay.status)}>{relay.title}</div>
         <div className='body'>
-            <button onClick={handleStartStopClick}>{relay.getStatus().text}</button>
+            <button onClick={handleStartStopClick}>{getButtonText(relay.status)}</button>
         </div>
         </div>)
 }

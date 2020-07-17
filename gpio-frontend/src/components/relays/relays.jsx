@@ -1,18 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import Axios from 'axios';
-import lodash from 'lodash';
+import socketIOClient from "socket.io-client";
 import './relays.scss';
+
 import { Config } from './../../Config';
 import { RelayComponent } from '../relay/relay';
 import { Relay } from '../../modules/relay';
-import socketIOClient from "socket.io-client";
-import { RelayDirections } from './../../modules/relay';
 
 export const RelaysComponent = function () {
     const [relays, setRelays] = useState([]);
-
     const [message, setMessage] = useState({});
-
+    const [relayChanged, setRelayChanged] = useState(0);
     useEffect(() => {
         const socket = socketIOClient(`${Config.ApiUrl}`);
         
@@ -23,45 +21,46 @@ export const RelaysComponent = function () {
         });
     
         socket.on("API event", data => {
-            setMessage(JSON.parse(data));
+            var parsedData = JSON.parse(data);
+            setMessage(parsedData);
         });
 
         return () => socket.disconnect();
     }, []);
 
     useEffect(() => {
-        Axios.get(`${Config.ApiUrl}/status`)
+        Axios.get(`${Config.ApiUrl}/relay`)
             .then(response => {
-                setRelays(response.data.devs
-                    .map(relay => new Relay(relay.GPIO, relay.value, relay.direction, relay.title)));
+                setRelays(response.data.relays
+                    .map(relay => new Relay(relay.GPIO, relay.title, relay.status)));
+                console.log('relays refreshed');
             })
             .catch(error => console.log(error));
     }, []);
 
     useEffect(() =>{
-        // relays.forEach(r => {
-        //     if(r.GPIO === message.GPIO) {
-        //         r.direction = message.direction;
-        //         r.value = r.direction === RelayDirections.IN ? 1: 0;
-        //     }
-        // });
-        // setRelays(lodash.cloneDeep(relays));
-        console.log(message);
-        Axios.get(`${Config.ApiUrl}/status`)
-        .then(response => {
-            console.log(response);
-            setRelays(response.data.devs
-                .map(relay => new Relay(relay.GPIO, relay.value, relay.direction, relay.title)));
-        })
-        .catch(error => console.log(error));
+        relays.forEach(r => {
+            if(r.GPIO === message.GPIO && r.status !== message.status) {
+                r.status = message.status;
+                console.log('Websockets', r);
+                setRelays(relays);
+                setRelayChanged(relayChanged + 1);
+            }
+        });
     }, [message]);
 
+    function handleOnRelayToggle(relay) {
+        Axios.get(`${Config.ApiUrl}/relay/${relay.GPIO}/${relay.status}`)
+        .then(response => {})
+        .catch(error => {
+            console.log(error);
+        });
+    }
     return (<>
         <h1>Relays</h1>
         <div className="relaysContainer">
             {relays.map((relay, index) => (
-                <RelayComponent key={index}
-                    relay={relay} />))}
+                <RelayComponent key={index} relay={relay} onToggle={handleOnRelayToggle}/>))}
         </div>
     </>);
 }
