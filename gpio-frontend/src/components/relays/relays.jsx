@@ -5,9 +5,8 @@ import './relays.scss';
 
 import { Config } from './../../Config';
 import { RelayComponent } from '../relay/relay';
-import { withForceUpdate } from '../../hocs/withForceUpdate';
 
-export const RelaysComponent = withForceUpdate(function () {
+export const RelaysComponent = function () {
     const [relays, setRelays] = useState([]);
     const [relayChanged, setRelayChanged] = useState({});
 
@@ -50,4 +49,4 @@ export const RelaysComponent = withForceUpdate(function () {
                 <RelayComponent key={index} relay={relay} onToggle={setRelayChanged}/>))}
         </div>
     </>);
-});
+};

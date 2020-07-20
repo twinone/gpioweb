@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import threading
+import requests
 import json
 import RPi.GPIO as GPIO
 from flask import Flask, jsonify, abort, send_from_directory, redirect
@@ -11,6 +12,23 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'vnkdjnfjknfl1232#'
 cors = CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
+
+def getRelaysFromCouchDb(baseUrl):
+    headers = {"Content-type": "application/json", "Accept": "text/plain"}
+
+    selector = {
+    "selector": {
+        "_id": {
+            "$gt": ""
+        }
+    },
+    "sort": [{"gpio": "asc"}]
+    }
+    response = requests.post("{}/relays/_find".format(baseUrl), data=json.dumps(selector), headers=headers)
+    relaysJson = response.text
+    relays=json.loads(relaysJson)["docs"]
+    result = map(lambda r: {"GPIO": r["gpio"], "text": r["text"], "status": "off"}, relays)
+    return list(result)
 
 PIN_MODES = {
 	"out": GPIO.OUT,
@@ -29,11 +47,13 @@ RELAY_VALUES = {
 
 GPIOS = [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26,29,31,32,33,35,36,37,38,40]
 
-RELAYS = [
-	{'title': 'Lights 1', 'GPIO': 36, 'status':'off'},
-	{'title': 'Lights 2', 'GPIO': 38, 'status':'off'},
-	{'title': 'Heat', 'GPIO': 40, 'status':'off'}
-]
+# RELAYS = [
+# 	{'title': 'Lights 1', 'GPIO': 36, 'status':'off'},
+# 	{'title': 'Lights 2', 'GPIO': 38, 'status':'off'},
+# 	{'title': 'Heat', 'GPIO': 40, 'status':'off'}
+# ]
+
+RELAYS = getRelaysFromCouchDb("http://localhost:5984")
 
 DEVS = []
 for gpio in GPIOS:

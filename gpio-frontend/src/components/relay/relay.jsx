@@ -21,10 +21,12 @@ export const RelayComponent = function(props) {
         }
     }
 
-    return(<div className='relay'>
-            <div className={'header ' + (relay.status)}>{relay.title}</div>
+    return(<div className='relay' onClick={handleStartStopClick}>
+            <div className={'header ' + (relay.status)}>
+                <h3>{relay.title}</h3>
+            </div>
             <div className='body'>
-                <button onClick={handleStartStopClick}>{getButtonText(relay.status)}</button>
+                {relay.status === 'on' ? 'Turn of' : 'Turn on'}
             </div>
         </div>)
 };
