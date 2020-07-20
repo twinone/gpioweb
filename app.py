@@ -101,7 +101,7 @@ def handle_output(pin, value):
 def handle_get_relays_statuses():
 	return jsonify({'status':'ok', 'relays': RELAYS}), 200
 
-@app.route('/relay/<int:pin>')
+@app.route('/relay/<int:pin>', methods=['GET'])
 def handle_get_relay_status():
 	if not is_relay_valid(pin):
 		return jsonify({'status':'fail', 'reason': 'invalid pin specified (' + pin + ')'}), 400
@@ -112,7 +112,7 @@ def handle_get_relay_status():
 	
 	return jsonify({'status':'fail', 'reason': 'invalid pin specified (' + pin + ')'}), 400
 
-@app.route('/relay/<int:pin>/<value>')
+@app.route('/relay/<int:pin>/<value>', methods=['POST'])
 def handle_set_relay(pin, value):
 	value = value.lower()
 	if value not in RELAY_VALUES.keys():
@@ -130,32 +130,35 @@ def handle_set_relay(pin, value):
 	for relay in RELAYS:
 		if relay["GPIO"] == pin:
 			relay["status"] = value
-			socketio.emit('API event', json.dumps(relay), callback=messageReceived)
+			socketio.emit('relay_changed', json.dumps(RELAYS), callback=messageReceived)
 
 	return jsonify({'status':'ok'}), 200
 
-@app.route('/static/<path:path>')
+@app.route('/static/<path:path>', methods=['GET'])
 def handle_static(path):
 	send_from_directory('static', path)
 
 def messageReceived(methods=['GET', 'POST']):
     print('message was received!!!')
 
-
 @socketio.on('connect')
 def test_connect():
     print('Connect event received!')
     #emit('my response', {'data': 'Connected'})
 
-@socketio.on('json')
-def handle_json(json):
-    print('received json: ' + str(json))
-
 @socketio.on('relay_changed')
-def handle_my_custom_event(json, methods=['GET', 'POST']):
-    print('###### received relay_changed: ' + str(json))
-    socketio.emit('API event', json, callback=messageReceived)
+def handle_my_custom_event(relay, methods=['GET', 'POST']):
+	print('###### received relay_changed: ' + str(relay))
+	if relay['status'] == 'on':
+		GPIO.setup(relay['GPIO'], GPIO.OUT)
+		GPIO.output(relay['GPIO'], GPIO.LOW)
+	else:
+		GPIO.setup(relay['GPIO'], GPIO.IN)
 
+	for r in RELAYS:
+		if r["GPIO"] == relay['GPIO']:
+			r["status"] = relay['status']
+			socketio.emit('relay_changed', json.dumps(RELAYS), callback=messageReceived)
 
 def setupGPIO():
 	GPIO.setwarnings(False)
@@ -167,7 +170,6 @@ def setupGPIO():
 
 def runApp():
 	app.run(debug=True, host='0.0.0.0')
-
 
 if __name__ == '__main__':
 	setupGPIO()
