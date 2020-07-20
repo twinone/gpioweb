@@ -35,12 +35,12 @@ export const RelaysComponent = withForceUpdate(function () {
             return;
         }
 
-        const socket = socketIOClient(`${Config.ApiUrl}`);
-        socket.emit('relay_changed', relayChanged);
-        return() => socket.disconnect();
+        // const socket = socketIOClient(`${Config.ApiUrl}`);
+        // socket.emit('relay_changed', relayChanged);
+        // return() => socket.disconnect();
 
-        // Axios.post(`${Config.ApiUrl}/relay/${relayChanged.GPIO}/${relayChanged.status}`)
-        // .catch(error => console.log(error));
+        Axios.post(`${Config.ApiUrl}/relay/${relayChanged.GPIO}/${relayChanged.status}`)
+        .catch(error => console.log(error));
     }, [relayChanged]);
 
     return (<>
