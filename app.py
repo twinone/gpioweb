@@ -27,7 +27,7 @@ def getRelaysFromCouchDb(baseUrl):
     response = requests.post("{}/relays/_find".format(baseUrl), data=json.dumps(selector), headers=headers)
     relaysJson = response.text
     relays=json.loads(relaysJson)["docs"]
-    result = map(lambda r: {"GPIO": r["gpio"], "text": r["text"], "status": "off"}, relays)
+    result = map(lambda r: {"GPIO": r["gpio"], "title": r["text"], "status": "off"}, relays)
     return list(result)
 
 PIN_MODES = {
