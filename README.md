@@ -4,10 +4,10 @@ Expose your Raspberry Pi's GPIO as a REST service. Auto-starts at boot.
 # Requirements
 ```
 sudo apt-get install python3-pip
-pip3 install RPi.GPIO
-pip3 install Flask
+pip3 install -r requirements.txt
 ```
-
+# Prerequisites
+A CouchDb database up and running
 # Installation
 ```
 sudo git clone https://github.com/marians20/gpioweb.git /usr/local/gpioweb
