@@ -7,28 +7,18 @@ import RPi.GPIO as GPIO
 from flask import Flask, jsonify, abort, send_from_directory, redirect
 from flask_cors import CORS
 from flask_socketio import SocketIO
+from config import Config
+from models.relay import Relay
+
+from repositories.relays import RelaysRepository
+from repositories.schedules import SchedulesRepository
+
+from scheduler import scheduler
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'vnkdjnfjknfl1232#'
 cors = CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
-
-def getRelaysFromCouchDb(baseUrl):
-    headers = {"Content-type": "application/json", "Accept": "text/plain"}
-
-    selector = {
-    "selector": {
-        "_id": {
-            "$gt": ""
-        }
-    },
-    "sort": [{"gpio": "asc"}]
-    }
-    response = requests.post("{}/relays/_find".format(baseUrl), data=json.dumps(selector), headers=headers)
-    relaysJson = response.text
-    relays=json.loads(relaysJson)["docs"]
-    result = map(lambda r: {"GPIO": r["gpio"], "title": r["text"], "status": "off"}, relays)
-    return list(result)
 
 PIN_MODES = {
 	"out": GPIO.OUT,
@@ -47,13 +37,14 @@ RELAY_VALUES = {
 
 GPIOS = [3,5,7,8,10,11,12,13,15,16,18,19,21,22,23,24,26,29,31,32,33,35,36,37,38,40]
 
-# RELAYS = [
+# Relays = [
 # 	{'title': 'Lights 1', 'GPIO': 36, 'status':'off'},
 # 	{'title': 'Lights 2', 'GPIO': 38, 'status':'off'},
 # 	{'title': 'Heat', 'GPIO': 40, 'status':'off'}
 # ]
 
-RELAYS = getRelaysFromCouchDb("http://localhost:5984")
+relaysRepository = RelaysRepository(Config["databaseUrl"])
+Relays = relaysRepository.all()
 
 DEVS = []
 for gpio in GPIOS:
@@ -61,14 +52,14 @@ for gpio in GPIOS:
 
 def is_pin_valid(pin):
 	for dev in DEVS:
-		if dev["GPIO"] == pin:
+		if dev.gpio == pin:
 			return True
 
 	return False
 
 def is_relay_valid(pin):
-	for relay in RELAYS:
-		if relay["GPIO"] == pin:
+	for relay in Relays:
+		if relay.gpio == pin:
 			return True
 
 	return False
@@ -80,7 +71,7 @@ def index():
 @app.route('/status')
 def handle_status():
 	for dev in DEVS:
-		dev["value"] = GPIO.input(dev["GPIO"])
+		dev["value"] = GPIO.input(dev.gpio)
 
 	return jsonify({'status':'ok','devs':DEVS})
 
@@ -91,9 +82,9 @@ def handle_setup(pin, mode):
 		return abort(400)
 	GPIO.setup(pin, PIN_MODES[mode])
 	for dev in DEVS:
-		if dev["GPIO"] == pin:
+		if dev.gpio == pin:
 			dev["direction"] = PIN_MODES[mode]
-			dev["value"] = GPIO.input(dev["GPIO"])
+			dev["value"] = GPIO.input(dev.gpio)
 
 	return jsonify({'status':'ok'})
 
@@ -110,25 +101,24 @@ def handle_output(pin, value):
 	GPIO.setup(pin, GPIO.OUT)
 	GPIO.output(pin, DIGITAL_VALUES[value])
 	for dev in DEVS:
-		if dev["GPIO"] == pin:
+		if dev.gpio == pin:
 			dev["direction"] = GPIO.OUT
 			dev["value"] = DIGITAL_VALUES[value]
-
 
 	return jsonify({'status':'ok'}), 200
 
 @app.route('/relay')
 def handle_get_relays_statuses():
-	return jsonify({'status':'ok', 'relays': RELAYS}), 200
+	return jsonify([relay.toDict() for relay in Relays]), 200
 
 @app.route('/relay/<int:pin>', methods=['GET'])
 def handle_get_relay_status():
 	if not is_relay_valid(pin):
 		return jsonify({'status':'fail', 'reason': 'invalid pin specified (' + pin + ')'}), 400
 	
-	for relay in RELAYS:
-		if relay["GPIO"] == pin:
-			return jsonify({'status': 'ok', 'relay': relay})
+	for relay in Relays:
+		if relay.gpio == pin:
+			return jsonify(relay)
 	
 	return jsonify({'status':'fail', 'reason': 'invalid pin specified (' + pin + ')'}), 400
 
@@ -147,10 +137,10 @@ def handle_set_relay(pin, value):
 	else:
 		GPIO.setup(pin, GPIO.IN)
 
-	for relay in RELAYS:
-		if relay["GPIO"] == pin:
-			relay["status"] = value
-			socketio.emit('relay_changed', json.dumps(RELAYS), callback=messageReceived)
+	for relay in Relays:
+		if relay.gpio == pin:
+			relay.status = value
+			socketio.emit('relay_changed', json.dumps([relay.toDict() for relay in Relays]), callback=messageReceived)
 
 	return jsonify({'status':'ok'}), 200
 
@@ -161,32 +151,25 @@ def handle_static(path):
 def messageReceived(methods=['GET', 'POST']):
     print('message was received!!!')
 
-@socketio.on('connect')
-def test_connect():
-    print('Connect event received!')
-    #emit('my response', {'data': 'Connected'})
-
 @socketio.on('relay_changed')
 def handle_my_custom_event(relay, methods=['GET', 'POST']):
 	print('###### received relay_changed: ' + str(relay))
-	if relay['status'] == 'on':
-		GPIO.setup(relay['GPIO'], GPIO.OUT)
-		GPIO.output(relay['GPIO'], GPIO.LOW)
+	if relay.status == 'on':
+		GPIO.setup(relay.gpio, GPIO.OUT)
+		GPIO.output(relay.gpio, GPIO.LOW)
 	else:
-		GPIO.setup(relay['GPIO'], GPIO.IN)
+		GPIO.setup(relay.gpio, GPIO.IN)
 
-	for r in RELAYS:
-		if r["GPIO"] == relay['GPIO']:
-			r["status"] = relay['status']
-			socketio.emit('relay_changed', json.dumps(RELAYS), callback=messageReceived)
+	for r in Relays:
+		if r.gpio == relay.gpio:
+			r.status = relay.status
+			socketio.emit('relay_changed', json.dumps([relay.toDict() for relay in Relays]), callback=messageReceived)
 
 def setupGPIO():
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BOARD)
-	# for relay in RELAYS:
-	# 	GPIO.setup(relay["GPIO"], GPIO.IN)
 	for dev in DEVS:
-		GPIO.setup(dev["GPIO"], GPIO.IN)
+		GPIO.setup(dev['GPIO'], GPIO.IN)
 
 def runApp():
 	app.run(debug=True, host='0.0.0.0')
