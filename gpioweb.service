@@ -2,7 +2,7 @@
 Description=GPIO Web interface
 
 [Service]
-ExecStart=/usr/local/gpioweb/app.py
+ExecStart=/usr/local/gpioweb/main.py
 Restart=always
 
 [Install]
