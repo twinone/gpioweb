@@ -13,7 +13,7 @@ export const RelaysComponent = function () {
     useEffect(() => {
         Axios.get(`${Config.ApiUrl}/relay`)
             .then(response => {
-                setRelays(response.data.relays);
+                setRelays(response.data);
             })
             .catch(error => console.log(error));
     }, []);
@@ -38,7 +38,7 @@ export const RelaysComponent = function () {
         // socket.emit('relay_changed', relayChanged);
         // return() => socket.disconnect();
 
-        Axios.post(`${Config.ApiUrl}/relay/${relayChanged.GPIO}/${relayChanged.status}`)
+        Axios.post(`${Config.ApiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`)
         .catch(error => console.log(error));
     }, [relayChanged]);
 
