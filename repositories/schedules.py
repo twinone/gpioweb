@@ -12,14 +12,13 @@ class SchedulesRepository:
         headers = {"Content-type": "application/json", "Accept": "text/plain"}
 
         selector = {
-        "selector": {
-            "_id": {
-                "$gt": ""
+            "selector": {
+                "_id": {
+                    "$gt": ""
+                }
             }
-        },
-        "sort": [{"relayId": "asc"}, {"startTime": "asc"}]
         }
         response = requests.post("{}/schedules/_find".format(self.baseUrl), data=json.dumps(selector), headers=headers).text
         entities=json.loads(response)["docs"]
-        result = map(lambda e: Schedule(e["relayId"], e["startTime"], e["endTime"]), entities)
+        result = map(lambda e: Schedule(e["relayGpio"], e["startTime"], e["endTime"]), entities)
         return list(result)
