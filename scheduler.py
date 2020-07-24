@@ -20,6 +20,9 @@ class Scheduler(threading.Thread):
     def addRelays(self, relays):
         self.relays = relays
 
+    def setOnRelayChange(self, func):
+        self.callback = func
+
     def schedule(self):
         while not self.exitFlag:
             self.setRelays()
@@ -36,10 +39,14 @@ class Scheduler(threading.Thread):
         now = datetime.datetime.now().time()
         for schedule in self.schedules:
             for relay in self.relays:
-                if schedule.relayGpio == relay.gpio:
+                if schedule.relayGpio == relay.gpio and not relay.manual:
                     if stringToTime(schedule.startTime) < now and stringToTime(schedule.endTime) > now:
-                        relay.turnOn()
+                        if relay.status == 'off':
+                            relay.turnOn()
+                            self.callback(relay)
                     else:
-                        relay.turnOff()
+                        if relay.status == 'on':
+                            relay.turnOff()
+                            self.callback(relay)
 
 scheduler = Scheduler(Config["databaseUrl"])

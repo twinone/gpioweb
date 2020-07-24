@@ -1,6 +1,7 @@
 import json
+import threading
 import RPi.GPIO as GPIO
-from flask import jsonify
+from flask import jsonify, redirect
 from config import Config
 from models.relay import Relay
 
@@ -16,7 +17,18 @@ from app import app, socketio
 relaysRepository = RelaysRepository(Config["databaseUrl"])
 Relays = relaysRepository.all()
 
+def sendRelays():
+	socketio.emit('relay_changed', json.dumps([relay.toDict() for relay in Relays]), callback=messageReceived)
+
+def notifyRelayChangedByScheduler(relay):
+	print('relay changed by schduler')
+	print(json.dumps(relay.toDict()))
+	#thr = threading.Thread(target=sendRelays, args=(), kwargs={})
+	#thr.start()
+	#thr.join()
+
 scheduler.addRelays(Relays)
+scheduler.setOnRelayChange(notifyRelayChangedByScheduler)
 scheduler.start()
 
 DEVS = []
@@ -107,13 +119,18 @@ def handle_set_relay(pin, value):
 	if value == 'on':
 		GPIO.setup(pin, GPIO.OUT)
 		GPIO.output(pin, GPIO.LOW)
-	else:
+	elif value == 'off':
 		GPIO.setup(pin, GPIO.IN)
 
 	for relay in Relays:
 		if relay.gpio == pin:
-			relay.status = value
-			socketio.emit('relay_changed', json.dumps([relay.toDict() for relay in Relays]), callback=messageReceived)
+			if value == 'auto':
+				relay.manual = False
+			else:
+				relay.manual = True
+				relay.status = value
+
+			sendRelays()
 
 	return jsonify({'status':'ok'}), 200
 
@@ -136,4 +153,4 @@ def handle_my_custom_event(relay, methods=['GET', 'POST']):
 	for r in Relays:
 		if r.gpio == relay.gpio:
 			r.status = relay.status
-			socketio.emit('relay_changed', json.dumps([relay.toDict() for relay in Relays]), callback=messageReceived)
+			sendRelays()
