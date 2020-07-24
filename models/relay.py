@@ -8,6 +8,7 @@ class Relay(Entity):
         self.gpio = gpio
         self.title = title
         self.status = 'off'
+        self.manual = False
 
     def turnOn(self):
         self.status = 'on'
@@ -17,3 +18,9 @@ class Relay(Entity):
     def turnOff(self):
         GPIO.setup(self.gpio, GPIO.IN)
         self.status = 'off'
+
+    def setAutomatic(self):
+        self.manual = False
+    
+    def setManual(self):
+        self.manual = True
