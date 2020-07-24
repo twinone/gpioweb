@@ -34,12 +34,13 @@ export const RelaysComponent = function () {
             return;
         }
 
-        // const socket = socketIOClient(`${Config.ApiUrl}`);
-        // socket.emit('relay_changed', relayChanged);
-        // return() => socket.disconnect();
-
-        Axios.post(`${Config.ApiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`)
-        .catch(error => console.log(error));
+        if(relayChanged.manual) {
+            Axios.post(`${Config.ApiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`)
+            .catch(error => console.log(error));
+        } else {
+            Axios.post(`${Config.ApiUrl}/relay/${relayChanged.gpio}/auto`)
+            .catch(error => console.log(error));            
+        }
     }, [relayChanged]);
 
     return (<>
