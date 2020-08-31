@@ -5,6 +5,7 @@ import './relays.scss';
 
 import { Config } from './../../Config';
 import { RelayComponent } from '../relay/relay';
+import { useInterval } from './../../hocs';
 
 export const RelaysComponent = function () {
     const [relays, setRelays] = useState([]);
@@ -42,6 +43,16 @@ export const RelaysComponent = function () {
             .catch(error => console.log(error));            
         }
     }, [relayChanged]);
+
+    // useInterval(async () => {
+    //     try {
+    //     var response = await Axios.get(`${Config.ApiUrl}/relay`);
+    //     console.log(response.data);
+    //     //setRelays(response.data);
+    //     } catch(error) {
+    //         console.error(error);
+    //     }
+    // }, 5000, [setRelays]);
 
     return (<>
         <h1>Relays</h1>

@@ -33,7 +33,6 @@ export const RelayComponent = function(props) {
                 <h3 onClick={handleStartStopClick}>{relay.title}</h3>
             </div>
             <div className='body'>
-                {getButtonText(relay.status)}
                 <button disabled={!relay.manual} onClick={handleAutoClick}>auto</button>
             </div>
         </div>)
