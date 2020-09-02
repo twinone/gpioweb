@@ -2,12 +2,11 @@
 import { createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
 import blue from '@material-ui/core/colors/blue';
 import green from '@material-ui/core/colors/green';
+import PouchDB from 'pouchdb';
 
-const prefersDarkMode = false; //useMediaQuery('(prefers-color-scheme: dark)');
-
-const theme = createMuiTheme({
+var theme = createMuiTheme({
     palette: {
-        type: prefersDarkMode ? 'dark' : 'light',
+        type: 'light',
         primary: {
             main: blue[500],
         },
@@ -16,5 +15,34 @@ const theme = createMuiTheme({
         }
     }
 });
+
+var db = new PouchDB('theme');
+
+db.get("theme")
+.then(res => {
+    console.log(res);
+    theme = createMuiTheme({
+        palette: {
+            type: res.prefersDarkMode,
+            primary: {
+                main: blue[500],
+            },
+            secondary: {
+                main: green[500],
+            }
+        }
+    });
+});
+
+// db.put({
+//     _id: 'theme',
+//     prefersDarkMode: true
+// }, (err, result) => {
+//     if (!err) {
+//         console.log('Successfully saved theme!');
+//     }
+// });
+
+
 
 export const Theme = responsiveFontSizes(theme);

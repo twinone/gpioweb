@@ -15,7 +15,7 @@ function App() {
       <Container maxWidth="md">
         {process.env.API_URL}
         <RelaysComponent />
-        <MyBottomNavigation />
+        
       </Container>
     </ThemeProvider>
   );
