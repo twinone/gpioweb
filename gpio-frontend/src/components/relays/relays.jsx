@@ -5,30 +5,31 @@ import './relays.scss';
 
 import { Config } from './../../Config';
 import { RelayComponent } from '../relay/relay';
-import { useInterval } from './../../hocs';
+//import { useInterval } from './../../hocs';
 
 export const RelaysComponent = function () {
     const [relays, setRelays] = useState([]);
     const [relayChanged, setRelayChanged] = useState({});
+    const [loadRelays, setLoadRelays] = useState(0);
 
     useEffect(() => {
+        console.log(`${process.env.REACT_APP_ENV} loadRelays`);
         Axios.get(`${Config.ApiUrl}/relay`)
             .then(response => {
                 setRelays(response.data);
             })
             .catch(error => console.log(error));
-    }, []);
+    }, [loadRelays]);
 
     useEffect(() => {
         const socket = socketIOClient(`${Config.ApiUrl}`);
-        socket.on("relay_changed", data => setRelays(JSON.parse(data)));
+        socket.on("relay_changed", data => {
+            console.log('[SOCKET.IO]: relay_changed');
+            setRelays(JSON.parse(data));
+            setLoadRelays(loadRelays + 1);
+        });
         return () => socket.disconnect();
     });
-
-    useEffect(() => {
-        console.log('Relays changed effect!');
-        console.log(relays);
-    }, [relays]);
 
     useEffect(() => {
         if(!relayChanged.status) {
@@ -55,7 +56,6 @@ export const RelaysComponent = function () {
     // }, 5000, [setRelays]);
 
     return (<>
-        <h1>Relays</h1>
         <div className="relaysContainer">
             {relays.map((relay, index) => (
                 <RelayComponent key={index} relay={relay} onToggle={setRelayChanged}/>))}
