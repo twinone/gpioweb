@@ -6,6 +6,8 @@ import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import MenuIcon from '@material-ui/icons/Menu';
+import Storage from '@material-ui/icons/Storage';
+import { Config } from './../../Config';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -32,6 +34,10 @@ export default function ButtonAppBar(props) {
           <Typography variant="h6" className={classes.title}>
             {props.Title}
           </Typography>
+          <IconButton className={classes.menuButton} color="inherit" aria-label="menu"
+            onClick={() => window.open(Config.DbUrl)}>
+            <Storage />
+        </IconButton>
           <Button color="inherit">Login</Button>
         </Toolbar>
       </AppBar>

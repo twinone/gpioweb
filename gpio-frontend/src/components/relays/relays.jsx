@@ -1,28 +1,42 @@
 import React, { useEffect, useState } from 'react';
 import Axios from 'axios';
 import socketIOClient from "socket.io-client";
+import { makeStyles } from '@material-ui/core/styles';
 import './relays.scss';
 
-import { Config } from './../../Config';
 import { RelayComponent } from '../relay/relay';
 //import { useInterval } from './../../hocs';
 
+const useStyles = makeStyles((theme) => ({
+    relaysContainer: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        '& div': {
+            margin: '10px',
+        }
+    }
+  }));
+
 export const RelaysComponent = function () {
+    const classes = useStyles();
+
+    const apiUrl = process.env.REACT_APP_API_URL;
+
     const [relays, setRelays] = useState([]);
     const [relayChanged, setRelayChanged] = useState({});
     const [loadRelays, setLoadRelays] = useState(0);
 
     useEffect(() => {
-        console.log(`${process.env.REACT_APP_ENV} loadRelays`);
-        Axios.get(`${Config.ApiUrl}/relay`)
+        console.log(`${apiUrl} loadRelays`);
+        Axios.get(`${apiUrl}/relay`)
             .then(response => {
                 setRelays(response.data);
             })
             .catch(error => console.log(error));
-    }, [loadRelays]);
+    }, [loadRelays, apiUrl]);
 
     useEffect(() => {
-        const socket = socketIOClient(`${Config.ApiUrl}`);
+        const socket = socketIOClient(`${apiUrl}`);
         socket.on("relay_changed", data => {
             console.log('[SOCKET.IO]: relay_changed');
             setRelays(JSON.parse(data));
@@ -37,13 +51,13 @@ export const RelaysComponent = function () {
         }
 
         if(relayChanged.manual) {
-            Axios.post(`${Config.ApiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`)
+            Axios.post(`${apiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`)
             .catch(error => console.log(error));
         } else {
-            Axios.post(`${Config.ApiUrl}/relay/${relayChanged.gpio}/auto`)
+            Axios.post(`${apiUrl}/relay/${relayChanged.gpio}/auto`)
             .catch(error => console.log(error));            
         }
-    }, [relayChanged]);
+    }, [relayChanged, apiUrl]);
 
     // useInterval(async () => {
     //     try {
@@ -56,9 +70,11 @@ export const RelaysComponent = function () {
     // }, 5000, [setRelays]);
 
     return (<>
-        <div className="relaysContainer">
+        <div className={classes.relaysContainer}>
             {relays.map((relay, index) => (
-                <RelayComponent key={index} relay={relay} onToggle={setRelayChanged}/>))}
+                <RelayComponent key={index}
+                    relay={relay}
+                    onToggle={setRelayChanged} />))}
         </div>
     </>);
 };
