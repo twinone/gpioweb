@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Axios from 'axios';
 import socketIOClient from "socket.io-client";
 import { makeStyles } from '@material-ui/core/styles';
-import './relays.scss';
 
 import { RelayComponent } from '../relay/relay';
 import { Toaster } from '../../shared';
