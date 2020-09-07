@@ -5,6 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import './relays.scss';
 
 import { RelayComponent } from '../relay/relay';
+import { Toaster } from '../../shared';
 //import { useInterval } from './../../hocs';
 
 const useStyles = makeStyles((theme) => ({
@@ -39,7 +40,27 @@ export const RelaysComponent = function () {
         const socket = socketIOClient(`${apiUrl}`);
         socket.on("relay_changed", data => {
             console.log('[SOCKET.IO]: relay_changed');
-            setRelays(JSON.parse(data));
+            
+            const newRelays = JSON.parse(data);
+
+            const affectedRelays = [];
+            relays.forEach(relay => {
+                const newRelay = newRelays.filter(newRelay => newRelay.gpio === relay.gpio)[0];
+                if(newRelay) {
+                    if(newRelay.status !== relay.status || newRelay.manual !== relay.manual) {
+                        affectedRelays.push(newRelay);
+                    }
+                }
+                });
+
+            console.log('Current relays', relays);
+            console.log('new relays', newRelays);
+            console.log('Affected relays', affectedRelays);
+
+            affectedRelays.forEach(r =>
+                Toaster.showInfo(`Relay ${r.title} ${(r.status === 'on' ? 'started': 'stopped')} (Auto : ${r.manual ? 'off': 'on'}).`));
+
+            setRelays(newRelays);
             setLoadRelays(loadRelays + 1);
         });
         return () => socket.disconnect();

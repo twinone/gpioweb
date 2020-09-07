@@ -1,12 +1,10 @@
 import { toast } from 'react-toastify';
 
-export type IToaster = {
-    showInfo(message: string): void;
-    showError (message: string): void;
-}
+toast.configure();
 
-export class Toaster implements IToaster {
-    public showInfo(message: string): void {
+export const Toaster = {
+    showInfo: function showInfo(message) {
+        console.log(message);
         toast.info(message, {
             position: "top-right",
             autoClose: 5000,
@@ -16,9 +14,9 @@ export class Toaster implements IToaster {
             draggable: true,
             progress: undefined,
             });
-    }
-    
-    public showError (message: string): void {
+    },
+    showEror: function showError(message) {
+        console.error(message);
         toast.error(message, {
             position: "top-right",
             autoClose: 5000,
@@ -27,6 +25,6 @@ export class Toaster implements IToaster {
             pauseOnHover: true,
             draggable: true,
             progress: undefined,
-            });
-    }
+            })
+    }      
 }

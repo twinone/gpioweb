@@ -7,8 +7,10 @@ import IconButton from '@material-ui/core/IconButton';
 import Typography from '@material-ui/core/Typography';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import Stop from '@material-ui/icons/Stop';
+import Edit from '@material-ui/icons/Edit';
 import AccessTimeIcon from '@material-ui/icons/AccessTime';
 import './relay.scss';
+import { Toaster } from './../../shared/toaster';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -45,6 +47,10 @@ export const RelayComponent = function(props) {
     const onToggle = {...props}.onToggle;
     const [relay, setRelay] = useState(props.relay);
 
+    function handleEditRelay() {
+      Toaster.showInfo(`Edit ${relay.title}`)
+    }
+
     function handleStartClick() {
         relay.manual = true;
         relay.status = 'on';
@@ -77,6 +83,11 @@ export const RelayComponent = function(props) {
             </Typography>
           </CardContent>
           <div className={classes.controls}>
+          <IconButton aria-label="play/pause" color="secondary"
+                onClick={handleEditRelay}
+                disabled = {relay.status === 'off' && relay.manual}>
+              <Edit className={classes.playIcon}/>
+            </IconButton>
             <IconButton aria-label="play/pause" color="primary"
                 onClick={handleStopClick}
                 disabled = {relay.status === 'off' && relay.manual}>
