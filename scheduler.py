@@ -37,10 +37,12 @@ class Scheduler(threading.Thread):
     def setRelays(self):
         self.schedules = SchedulesRepository(self.databaseUrl).all()
         now = datetime.datetime.now().time()
-        for schedule in self.schedules:
-            for relay in self.relays:
-                if schedule.relayGpio == relay.gpio and not relay.manual:
+        for relay in self.relays:
+            alreadySet = False
+            for schedule in self.schedules:
+                if schedule.relayGpio == relay.gpio and not relay.manual and not alreadySet:
                     if stringToTime(schedule.startTime) < now and stringToTime(schedule.endTime) > now:
+                        alreadySet = True
                         if relay.status == 'off':
                             relay.turnOn()
                             self.callback(relay)
