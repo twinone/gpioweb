@@ -1,3 +1,4 @@
+import uuid
 import RPi.GPIO as GPIO
 from entity import Entity
 
@@ -5,6 +6,8 @@ class Relay(Entity):
     def __init__(self, gpio, title):
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BOARD)
+        self._id = str(uuid.uuid4())
+        self._rev = ''
         self.gpio = gpio
         self.title = title
         self.status = 'off'
