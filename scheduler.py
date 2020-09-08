@@ -7,8 +7,6 @@ from config import Config
 from repositories.relays import RelaysRepository
 from repositories.schedules import SchedulesRepository
 
-from libraries.datetimeutils import stringToTime
-
 class Scheduler(threading.Thread):
     def __init__(self, databaseUrl):
         threading.Thread.__init__(self)
@@ -38,17 +36,18 @@ class Scheduler(threading.Thread):
         self.schedules = SchedulesRepository(self.databaseUrl).all()
         now = datetime.datetime.now().time()
         for relay in self.relays:
-            alreadySet = False
+            isActive = False
             for schedule in self.schedules:
-                if schedule.relayGpio == relay.gpio and not relay.manual and not alreadySet:
-                    if stringToTime(schedule.startTime) < now and stringToTime(schedule.endTime) > now:
-                        alreadySet = True
-                        if relay.status == 'off':
-                            relay.turnOn()
-                            self.callback(relay)
-                    else:
-                        if relay.status == 'on':
-                            relay.turnOff()
-                            self.callback(relay)
+                if schedule.relayGpio == relay.gpio and not relay.manual:
+                    if schedule.isActive():
+                        isActive = True
+                
+                if isActive and relay.status == 'off':
+                    relay.turnOn();
+                    self.callback(relay)
+
+                if not isActive and relay.status == 'on':
+                    relay.turnOff();
+                    self.callback(relay)
 
 scheduler = Scheduler(Config["databaseUrl"])
