@@ -94,6 +94,7 @@ export const RelayComponent = function(props) {
               <Stop className={classes.icon}/>
             </IconButton>
             <IconButton aria-label="play/pause" color="primary"
+                onClick={handleStartClick}
                 disabled = {relay.status === 'on' && relay.manual}>
               <PlayArrowIcon className={classes.icon + (relay.status === 'off'? ' ' + classes.selected : '')}/>
             </IconButton>
