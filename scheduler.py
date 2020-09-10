@@ -35,19 +35,27 @@ class Scheduler(threading.Thread):
     def setRelays(self):
         self.schedules = SchedulesRepository(self.databaseUrl).all()
         now = datetime.datetime.now().time()
-        for relay in self.relays:
-            isActive = False
-            for schedule in self.schedules:
-                if schedule.relayGpio == relay.gpio and not relay.manual:
-                    if schedule.isActive():
-                        isActive = True
-                
-                if isActive and relay.status == 'off':
-                    relay.turnOn();
-                    self.callback(relay)
 
-                if not isActive and relay.status == 'on':
-                    relay.turnOff();
-                    self.callback(relay)
+        for relay in self.relays:
+
+            isScheduled = False
+            for schedule in self.schedules:
+                if relay.gpio == schedule.relayGpio:
+                    isScheduled = True
+
+            if isScheduled:
+                isActive = False
+                for schedule in self.schedules:
+                    if schedule.relayGpio == relay.gpio and not relay.manual:
+                        if schedule.isActive():
+                            isActive = True
+                    
+                    if isActive and relay.status == 'off':
+                        relay.turnOn();
+                        self.callback(relay)
+
+                    if not isActive and relay.status == 'on':
+                        relay.turnOff();
+                        self.callback(relay)
 
 scheduler = Scheduler(Config["databaseUrl"])
