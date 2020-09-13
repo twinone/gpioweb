@@ -18,14 +18,15 @@ relaysRepository = RelaysRepository(Config["databaseUrl"])
 Relays = relaysRepository.all()
 
 def sendRelays():
-	socketio.emit('relay_changed', json.dumps([relay.toDict() for relay in Relays]), callback=messageReceived)
+	with app.test_request_context():
+		socketio.emit('relay_changed', json.dumps([relay.toDict() for relay in Relays]), callback=messageReceived)
 
 def notifyRelayChangedByScheduler(relay):
+	thr = threading.Thread(target=sendRelays, args=(), kwargs={})
+	thr.start()
+	thr.join()
 	print('relay changed by schduler')
 	print(json.dumps(relay.toDict()))
-	#thr = threading.Thread(target=sendRelays, args=(), kwargs={})
-	#thr.start()
-	#thr.join()
 
 scheduler.addRelays(Relays)
 scheduler.setOnRelayChange(notifyRelayChangedByScheduler)
