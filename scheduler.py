@@ -38,24 +38,30 @@ class Scheduler(threading.Thread):
 
         for relay in self.relays:
 
-            isScheduled = False
-            for schedule in self.schedules:
-                if relay.gpio == schedule.relayGpio:
-                    isScheduled = True
+            if not self.isRelayScheduled(relay):
+                continue
+            
+            if self.isRelayActive(relay):
+                if relay.status == 'off':
+                    relay.turnOn()
+                    self.callback(relay)
+            else:
+                if relay.status == 'on':
+                    relay.turnOff()
+                    self.callback(relay)
 
-            if isScheduled:
-                isActive = False
-                for schedule in self.schedules:
-                    if schedule.relayGpio == relay.gpio and not relay.manual:
-                        if schedule.isActive():
-                            isActive = True
-                    
-                    if isActive and relay.status == 'off':
-                        relay.turnOn();
-                        self.callback(relay)
+    def isRelayActive(self, relay):
+        for schedule in self.schedules:
+            if schedule.relayGpio == relay.gpio and not relay.manual:
+                if schedule.isActive():
+                    return True
+        return False
 
-                    if not isActive and relay.status == 'on':
-                        relay.turnOff();
-                        self.callback(relay)
+    def isRelayScheduled(self, relay):
+        for schedule in self.schedules:
+            if relay.gpio == schedule.relayGpio:
+                return True
+
+        return False
 
 scheduler = Scheduler(Config["databaseUrl"])
