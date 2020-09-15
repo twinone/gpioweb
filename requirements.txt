@@ -8,3 +8,4 @@ requests==2.21.0
 requests-oauthlib==1.0.0
 responses==0.9.0
 RPi.GPIO==0.7.0
+couchdb==1.2

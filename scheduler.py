@@ -7,9 +7,12 @@ from config import Config
 from repositories.relays import RelaysRepository
 from repositories.schedules import SchedulesRepository
 
+from libraries import Logger
+
 class Scheduler(threading.Thread):
     def __init__(self, databaseUrl):
         threading.Thread.__init__(self)
+        self.logger = Logger()
         self.exitFlag = False
         self.databaseUrl = databaseUrl
         self.relays = []
@@ -22,9 +25,14 @@ class Scheduler(threading.Thread):
         self.callback = func
 
     def schedule(self):
+        self.logger.debug('Scheduler started')
         while not self.exitFlag:
-            self.setRelays()
-            time.sleep(1)
+            try:
+                self.setRelays()
+            except Error as err:
+                logger.error('SetRelays Exception: {}'.format(err))
+            finally:
+                time.sleep(1)
 
     def run(self):
         self.schedule()
@@ -44,6 +52,7 @@ class Scheduler(threading.Thread):
             if self.isRelayActive(relay):
                 if relay.status == 'off':
                     relay.turnOn()
+                    self.logger.info('SCHEDULER | Relay {} changed to on'.format(relay.gpio))
                     self.callback(relay)
             else:
                 if relay.status == 'on':
