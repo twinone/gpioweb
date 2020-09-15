@@ -57,6 +57,7 @@ class Scheduler(threading.Thread):
             else:
                 if relay.status == 'on':
                     relay.turnOff()
+                    self.logger.info('SCHEDULER | Relay {} changed to off'.format(relay.gpio))
                     self.callback(relay)
 
     def isRelayActive(self, relay):
