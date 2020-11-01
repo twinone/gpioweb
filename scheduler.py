@@ -46,7 +46,7 @@ class Scheduler(threading.Thread):
 
         for relay in self.relays:
 
-            if not self.isRelayScheduled(relay):
+            if not self.isRelayScheduled(relay) or relay.manual:
                 continue
             
             if self.isRelayActive(relay):
