@@ -44,7 +44,7 @@ const useStyles = makeStyles((theme) => ({
 
 export const RelayComponent = (props) => {
   const classes = useStyles();
-  const { onToggle, relay: initialRelay } = props;
+  let { onToggle, relay: initialRelay } = props;
 
   const [relay, setRelay] = useState(initialRelay);
 
@@ -90,15 +90,14 @@ export const RelayComponent = (props) => {
     });
   }
 
-  const relayDescription = `${relay.manual ? "" : "[auto] "} ${relay.status}`;
-  const editDisabled = relay.status === "on" || !relay.manual;
-  const stopDisabled = relay.status === "off" && relay.manual;
-  const stopIconClass = `${classes.icon} ${relay.status === 'off' ? ' ' + classes.selected : ''}`;
-  const startDisabled = relay.status === "on" && relay.manual;
-  const startIconClass = `${classes.icon} ${relay.status === 'on' ? ' ' + classes.selected : ''}`;
-  const manualDisabled = !relay.manual;
-  // const automaticIconClass = `${classes.icon} ${relay.manual ? ' ' + classes.selected : ''}`;
-  const automaticIconClass = `${classes.icon}`;
+  const relayDescription = `${props.relay.manual ? "" : "[auto] "} ${props.relay.status}`;
+  const editDisabled = props.relay.status === "on" || !props.relay.manual;
+  const stopDisabled = props.relay.status === "off" && props.relay.manual;
+  const stopIconClass = `${classes.icon} ${props.relay.status === 'off' ? ' ' + classes.selected : ''}`;
+  const startDisabled = props.relay.status === "on" && props.relay.manual;
+  const startIconClass = `${classes.icon} ${props.relay.status === 'on' ? ' ' + classes.selected : ''}`;
+  const manualDisabled = !props.relay.manual;
+  const automaticIconClass = `${classes.icon} ${!relay.manual ? ' ' + classes.selected : ''}`;
 
   return (
     <Card className={classes.root}>

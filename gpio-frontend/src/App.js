@@ -5,7 +5,6 @@ import { Container } from '@material-ui/core';
 import { RelaysComponent } from './components/relays/relays';
 import { Theme } from './theme';
 import './App.scss';
-import { MyBottomNavigation } from './components/layout/bottom-navigation';
 import ButtonAppBar from './components/layout/application-bar';
 
 function App() {
@@ -16,7 +15,6 @@ function App() {
       <Container maxWidth="md">
         {process.env.API_URL}
         <RelaysComponent />
-        
       </Container>
     </ThemeProvider>
   );
