@@ -97,7 +97,7 @@ export const RelayComponent = (props) => {
   const startDisabled = props.relay.status === "on" && props.relay.manual;
   const startIconClass = `${classes.icon} ${props.relay.status === 'on' ? ' ' + classes.selected : ''}`;
   const manualDisabled = !props.relay.manual;
-  const automaticIconClass = `${classes.icon} ${!relay.manual ? ' ' + classes.selected : ''}`;
+  const automaticIconClass = `${classes.icon} ${!props.relay.manual ? ' ' + classes.selected : ''}`;
 
   return (
     <Card className={classes.root}>

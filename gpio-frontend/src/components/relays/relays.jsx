@@ -57,48 +57,36 @@ export const RelaysComponent = () => {
     const socket = socketIOClient(`${apiUrl}`);
     socket.on("relay_changed", (data) => {
       const newRelays = JSON.parse(data);
-      setRelays((prevRelays) => {
-        const affectedRelays = identifyModifiedRelays(prevRelays, newRelays);
-        affectedRelays.forEach(showRelayStatusInToaster);
-        return newRelays;
-      });
+      const affectedRelays = identifyModifiedRelays(relays, newRelays);
+      affectedRelays.forEach(showRelayStatusInToaster);
+      setRelays(newRelays);
     });
 
-    //effect cleanup
-    return () => {
-      socket.disconnect();
-    };
-  }, [setRelays]);
+    return () => socket.disconnect();
+  }, [relays]);
 
-  const {gpio, status, manual} = relayChanged;
   // Send relay changes to backend
   useEffect(() => {
-    if (!status) {
+    if (!relayChanged.status) {
       return;
     }
 
-    if (manual) {
-      Axios.post(
-        `${apiUrl}/relay/${gpio}/${status}`
-      ).catch((error) => console.log(error));
-    } else {
-      Axios.post(`${apiUrl}/relay/${gpio}/auto`).catch((error) =>
-        console.log(error)
-      );
-    }
-  }, [gpio, status, manual]);
+    const postUrl = relayChanged.manual
+      ? `${apiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`
+      : `${apiUrl}/relay/${relayChanged.gpio}/auto`;
+      
+    Axios.post(postUrl).catch(error => console.log(error));
+  }, [relayChanged]);
 
-  const renderedRelays = relays.map((relay) => {
-    return (
-      <RelayComponent
-        key={relay._id}
-        relay={relay}
-        onToggle={setRelayChanged}
-      />
-    );
-  });
-
-  return <div className={styles.relaysContainer}>
-    {renderedRelays}
-    </div>;
+  return (
+    <div className={styles.relaysContainer}>
+      {relays.map((relay) => (
+        <RelayComponent
+          key={relay._id}
+          relay={relay}
+          onToggle={setRelayChanged}
+        />
+      ))}
+    </div>
+  );
 };
