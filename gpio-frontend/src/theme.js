@@ -1,12 +1,12 @@
 //import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { createMuiTheme, responsiveFontSizes } from '@material-ui/core/styles';
+import { createTheme, responsiveFontSizes } from '@material-ui/core/styles';
 import blue from '@material-ui/core/colors/blue';
 import green from '@material-ui/core/colors/green';
 import red from '@material-ui/core/colors/red';
 import purple from '@material-ui/core/colors/purple';
 import orange from '@material-ui/core/colors/orange';
 
-var theme = createMuiTheme({
+var theme = createTheme({
     palette: {
         type: 'light',
         primary: {

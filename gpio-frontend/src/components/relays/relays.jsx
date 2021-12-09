@@ -1,100 +1,117 @@
-import React, { useEffect, useState } from 'react';
-import Axios from 'axios';
+import React, { useEffect, useState } from "react";
+import Axios from "axios";
 import socketIOClient from "socket.io-client";
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from "@material-ui/core/styles";
 
-import { RelayComponent } from '../relay/relay';
-import { Toaster } from '../../shared';
-//import { useInterval } from './../../hocs';
+import { RelayComponent } from "../relay/relay";
+import { Toaster } from "../../shared";
 
 const useStyles = makeStyles((theme) => ({
-    relaysContainer: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        '& div': {
-            margin: '10px',
-        }
+  relaysContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    "& div": {
+      margin: "10px",
+    },
+  },
+}));
+
+const apiUrl = process.env.REACT_APP_API_URL;
+
+const getChangedRelays = (previewRelays, newRelays) => {
+  const affectedRelays = [];
+  previewRelays.forEach((relay) => {
+    const newRelay = newRelays.filter(
+      (newRelay) => newRelay.gpio === relay.gpio
+    )[0];
+    if (newRelay) {
+      if (
+        newRelay.status !== relay.status ||
+        newRelay.manual !== relay.manual
+      ) {
+        affectedRelays.push(newRelay);
+      }
     }
-  }));
+  });
 
-export const RelaysComponent = function () {
-    const classes = useStyles();
+  return affectedRelays;
+};
 
-    const apiUrl = process.env.REACT_APP_API_URL;
+const showChangedRelayInToaster = (relay) => {
+  Toaster.showInfo(
+    `Relay ${relay.title} ${
+      relay.status === "on" ? "started" : "stopped"
+    } (Auto : ${relay.manual ? "off" : "on"}).`
+  );
+};
 
-    const [relays, setRelays] = useState([]);
-    const [relayChanged, setRelayChanged] = useState({});
-    const [loadRelays, setLoadRelays] = useState(0);
+export const RelaysComponent = () => {
+  const classes = useStyles();
+  const [relays, setRelays] = useState([]);
+  const [relayChanged, setRelayChanged] = useState({});
 
-    useEffect(() => {
-        console.log(`${apiUrl} loadRelays`);
-        Axios.get(`${apiUrl}/relay`)
-            .then(response => {
-                setRelays(response.data);
-            })
-            .catch(error => console.log(error));
-    }, [loadRelays, apiUrl]);
+  // Load list of relays
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await Axios.get(`${apiUrl}/relay`);
+        setRelays(response.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
 
-    useEffect(() => {
-        const socket = socketIOClient(`${apiUrl}`);
-        socket.on("relay_changed", data => {
-            console.log('[SOCKET.IO]: relay_changed');
-            
-            const newRelays = JSON.parse(data);
+    fetchData();
+  }, []);
 
-            const affectedRelays = [];
-            relays.forEach(relay => {
-                const newRelay = newRelays.filter(newRelay => newRelay.gpio === relay.gpio)[0];
-                if(newRelay) {
-                    if(newRelay.status !== relay.status || newRelay.manual !== relay.manual) {
-                        affectedRelays.push(newRelay);
-                    }
-                }
-                });
+  // When a relay has been changed form other place
+  useEffect(() => {
+    const socket = socketIOClient(`${apiUrl}`);
+    socket.on(
+      "relay_changed",
+      (data) => {
+        console.log("RECEIVED SOCKET MSG!");
+        const newRelays = JSON.parse(data);
 
-            console.log('Current relays', relays);
-            console.log('new relays', newRelays);
-            console.log('Affected relays', affectedRelays);
-
-            affectedRelays.forEach(r =>
-                Toaster.showInfo(`Relay ${r.title} ${(r.status === 'on' ? 'started': 'stopped')} (Auto : ${r.manual ? 'off': 'on'}).`));
-
-            setRelays(newRelays);
-            setLoadRelays(loadRelays + 1);
+        setRelays((previewRelays) => {
+          const affectedRelays = getChangedRelays(previewRelays, newRelays);
+          affectedRelays.forEach(showChangedRelayInToaster);
+          return newRelays;
         });
-        return () => socket.disconnect();
-    });
+      },
+      []
+    );
 
-    useEffect(() => {
-        if(!relayChanged.status) {
-            return;
-        }
+    //effect cleanup
+    return () => {
+      socket.disconnect();
+    };
+  }, [relays, setRelays]);
 
-        if(relayChanged.manual) {
-            Axios.post(`${apiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`)
-            .catch(error => console.log(error));
-        } else {
-            Axios.post(`${apiUrl}/relay/${relayChanged.gpio}/auto`)
-            .catch(error => console.log(error));            
-        }
-    }, [relayChanged, apiUrl]);
+  // Send relay changes to backend
+  useEffect(() => {
+    if (!relayChanged.status) {
+      return;
+    }
 
-    // useInterval(async () => {
-    //     try {
-    //     var response = await Axios.get(`${Config.ApiUrl}/relay`);
-    //     console.log(response.data);
-    //     //setRelays(response.data);
-    //     } catch(error) {
-    //         console.error(error);
-    //     }
-    // }, 5000, [setRelays]);
+    if (relayChanged.manual) {
+      Axios.post(
+        `${apiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`
+      ).catch((error) => console.log(error));
+    } else {
+      Axios.post(`${apiUrl}/relay/${relayChanged.gpio}/auto`).catch((error) =>
+        console.log(error)
+      );
+    }
+  }, [relayChanged]);
 
-    return (<>
-        <div className={classes.relaysContainer}>
-            {relays.map((relay, index) => (
-                <RelayComponent key={index}
-                    relay={relay}
-                    onToggle={setRelayChanged} />))}
-        </div>
-    </>);
+  const renderedRelays = relays.map((relay) => (
+      <RelayComponent
+        key={relay._id}
+        relay={relay}
+        onToggle={setRelayChanged}
+      />
+    ));
+
+  return <div className={classes.relaysContainer}>{renderedRelays}</div>;
 };

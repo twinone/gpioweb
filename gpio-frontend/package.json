@@ -10,7 +10,7 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "@types/pouchdb": "^6.4.0",
-    "axios": "^0.19.2",
+    "axios": "^0.24.0",
     "dotenv": "^8.2.0",
     "env-cmd": "^10.1.0",
     "fontsource-roboto": "^3.0.3",
