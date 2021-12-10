@@ -1,28 +1,23 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useContext } from "react";
 import Axios from "axios";
+
+import Utils from '../../modules/utils';
 
 import { RelayComponent } from "../relay/relay";
 import { Toaster } from "../../shared";
-
-import styles from "./relays.module.scss";
-import { socket } from "../../contexts/socket-context";
+import { SocketContext } from "../../contexts/socket-context";
 import SocketProvider from "../../contexts/SocketProvider";
+import styles from "./relays.module.scss";
 
 const apiUrl = process.env.REACT_APP_API_URL;
 
-const identifyModifiedRelays = (previewRelays, newRelays) => {
+const identifyModifiedRelays = (previousRelays, newRelays) => {
   const affectedRelays = [];
-  previewRelays.forEach((relay) => {
-    const newRelay = newRelays.filter(
-      (newRelay) => newRelay.gpio === relay.gpio
-    )[0];
-    if (newRelay) {
-      if (
-        newRelay.status !== relay.status ||
-        newRelay.manual !== relay.manual
-      ) {
-        affectedRelays.push(newRelay);
-      }
+  previousRelays.forEach((relay) => {
+    const newRelay = newRelays.find((newRelay) => newRelay._id === relay._id);
+
+    if (newRelay && !Utils.equals(relay, newRelay)) {
+      affectedRelays.push(newRelay);
     }
   });
 
@@ -41,6 +36,8 @@ export const RelaysComponent = () => {
   const [relays, setRelays] = useState([]);
   const [relayChanged, setRelayChanged] = useState({});
 
+  const socket = useContext(SocketContext).socket;
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -53,19 +50,22 @@ export const RelaysComponent = () => {
     fetchData();
   }, []);
 
-  const relayChangedSocketMessageHandler = useCallback(data => {
-    console.log('SOCKET!');
-    const newRelays = JSON.parse(data);
-    const affectedRelays = identifyModifiedRelays(relays, newRelays);
-    affectedRelays.forEach(showRelayStatusInToaster);
-    setRelays(newRelays);
-  },[relays]);
+  const relayChangedSocketMessageHandler = useCallback(
+    (data) => {
+      const newRelays = JSON.parse(data);
+      const affectedRelays = identifyModifiedRelays(relays, newRelays);
+      affectedRelays.forEach(showRelayStatusInToaster);
+      setRelays(newRelays);
+    },
+    [relays]
+  );
 
   useEffect(() => {
-    socket.on("relay_changed", relayChangedSocketMessageHandler);
+    const message = "relay_changed";
+    socket.on(message, relayChangedSocketMessageHandler);
 
-    return () => socket.off("relay_changed", relayChangedSocketMessageHandler);
-  }, [relayChangedSocketMessageHandler]);
+    return () => socket.off(message, relayChangedSocketMessageHandler);
+  }, [socket, relayChangedSocketMessageHandler]);
 
   // Send relay changes to the backend
   useEffect(() => {
@@ -76,36 +76,38 @@ export const RelaysComponent = () => {
     const postUrl = relayChanged.manual
       ? `${apiUrl}/relay/${relayChanged.gpio}/${relayChanged.status}`
       : `${apiUrl}/relay/${relayChanged.gpio}/auto`;
-      
-    Axios.post(postUrl).catch(error => console.log(error));
+
+    Axios.post(postUrl).catch((error) => console.log(error));
   }, [relayChanged]);
 
-  const relayChangedHandler = relay => {
-    setRelays(previousRelays => {
+  const relayChangedHandler = (relay) => {
+    setRelays((previousRelays) => {
       let newRelays = [];
 
-      const changedRelayIndex = previousRelays.findIndex(rel => rel._id === relay._id);
+      const changedRelayIndex = previousRelays.findIndex(
+        (rel) => rel._id === relay._id
+      );
 
-      for(let i = 0; i < previousRelays.length; i++) {
+      for (let i = 0; i < previousRelays.length; i++) {
         newRelays.push(i === changedRelayIndex ? relay : previousRelays[i]);
       }
 
       return newRelays;
     });
     setRelayChanged(relay);
-  }
+  };
 
   return (
     <SocketProvider>
-    <div className={styles.relaysContainer}>
-      {relays.map((relay) => (
-        <RelayComponent
-          key={relay._id}
-          relay={relay}
-          onToggle={relayChangedHandler}
-        />
-      ))}
-    </div>
+      <div className={styles.relaysContainer}>
+        {relays.map((relay) => (
+          <RelayComponent
+            key={relay._id}
+            relay={relay}
+            onToggle={relayChangedHandler}
+          />
+        ))}
+      </div>
     </SocketProvider>
   );
 };

@@ -3,13 +3,14 @@ import { toast } from 'react-toastify';
 toast.configure();
 
 const toasterOptions = {
-    position: "top-right",
-    autoClose: 5000,
+    position: "top-center",
+    autoClose: 2000,
     hideProgressBar: false,
+    newestOnTop: true,
     closeOnClick: true,
-    pauseOnHover: true,
+    pauseOnFocusLoss: false,
     draggable: true,
-    progress: undefined,
+    pauseOnHover: false,
     };
 
 export const Toaster = {
