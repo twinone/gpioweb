@@ -1,11 +1,8 @@
-import React, { useContext } from "react";
-
-import SocketContext from "./socket-context";
+import SocketContext, {socket} from "./socket-context";
 
 const SocketProvider = (props) => {
-  const socketContext = useContext(SocketContext);
   return (
-    <SocketContext.Provider value={socketContext.socket}>
+    <SocketContext.Provider value={socket}>
       {props.children}
     </SocketContext.Provider>
   );

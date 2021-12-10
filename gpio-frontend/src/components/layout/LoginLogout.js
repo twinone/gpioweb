@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import { useContext, useState } from "react";
 
 import IconButton from "@material-ui/core/IconButton";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -18,6 +18,9 @@ const LoginLogout = (props) => {
   const authContext = useContext(AuthContext);
   const [isAuthenticated, setIsAuthenticated] = useState(authContext.isAuthenticated);
 
+  authContext.onLoggedIn = () => setIsAuthenticated(true);
+  authContext.onLoggedOut = () => setIsAuthenticated(false);
+  
   const loginClickHandler = () => {
     authContext.login && authContext.login();
   }

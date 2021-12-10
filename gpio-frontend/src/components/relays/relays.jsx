@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useContext, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Axios from "axios";
 
 import { RelayComponent } from "../relay/relay";
 import { Toaster } from "../../shared";
 
 import styles from "./relays.module.scss";
-import SocketContext from "../../contexts/socket-context";
+import { socket } from "../../contexts/socket-context";
 import SocketProvider from "../../contexts/SocketProvider";
 
 const apiUrl = process.env.REACT_APP_API_URL;
@@ -38,8 +38,6 @@ const showRelayStatusInToaster = (relay) => {
 };
 
 export const RelaysComponent = () => {
-  const socket = useContext(SocketContext).socket;
-  console.log(socket);
   const [relays, setRelays] = useState([]);
   const [relayChanged, setRelayChanged] = useState({});
 
@@ -67,7 +65,7 @@ export const RelaysComponent = () => {
     socket.on("relay_changed", relayChangedSocketMessageHandler);
 
     return () => socket.off("relay_changed", relayChangedSocketMessageHandler);
-  }, [relayChangedSocketMessageHandler, socket]);
+  }, [relayChangedSocketMessageHandler]);
 
   // Send relay changes to the backend
   useEffect(() => {
