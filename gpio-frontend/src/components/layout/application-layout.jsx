@@ -8,6 +8,7 @@ import ApplicationBar from "./application-bar";
 import { RelaysComponent } from "../relays/relays";
 import LayoutContext from "../../contexts/layout-context";
 import LayoutProvider from "../../contexts/LayoutProvider";
+import AuthProvider from "../../contexts/AuthProvider";
 import { Config } from "../../Config";
 
 import classes from "./application-layout.module.scss";
@@ -23,6 +24,7 @@ const ApplicationLayout = (props) => {
   };
 
   return (
+    <AuthProvider>
     <div className={classes.layout}>
       <LayoutProvider>
         <ApplicationSidebar className={`${classes['side-bar']}`} visible={isSidebarVisible}>
@@ -44,6 +46,7 @@ const ApplicationLayout = (props) => {
         </div>
       </LayoutProvider>
     </div>
+    </AuthProvider>
   );
 };
 
