@@ -1,20 +1,37 @@
+import React, { useContext } from "react";
+import Slide from "@mui/material/Slide";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import CustomDialogContext from './custom-dialog-context';
+
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const CustomDialog = (props) => {
-    const handleClose = (data) => {
-    props.handleClose(data);
+  const customDialogContext = useContext(CustomDialogContext);
+  const handleClose = (data) => {
+    customDialogContext.closeDialog();
+    if(data) {
+      customDialogContext.submitForm && customDialogContext.submitForm();
+    }
   };
 
   return (
-    <Dialog open={props.open} onClose={handleClose}>
-      <DialogTitle>{props.title}</DialogTitle>
+    <Dialog
+      open={props.open}
+      onClose={handleClose}
+      TransitionComponent={Transition}
+      fullWidth={props.fullWidth || true}
+      maxWidth={props.maxWidth || 'md'}
+    >
+      <DialogTitle>{customDialogContext.title}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{props.text}</DialogContentText>
+        <DialogContentText>{customDialogContext.text}</DialogContentText>
         {props.children}
       </DialogContent>
       <DialogActions>

@@ -49,16 +49,19 @@ export const RelayComponent = (props) => {
   let { onToggle, relay: initialRelay } = props;
   const [relay, setRelay] = useState(initialRelay);
 
-  const customDialogContext = useContext(CustomDialogContext);
-  customDialogContext.title = 'Editare releu';
-  customDialogContext.text = initialRelay.title;
-  customDialogContext.dialogContent = (<RelayForm/>);
-  customDialogContext.handleClose = (data) => {
-    customDialogContext.closeDialog();
-    console.log('Dialog Closed.', data);
+  const formSubmitHandler = data => {
+    console.log(data);
+    console.log('Save editedrelay here!');
   }
 
+  const customDialogContext = useContext(CustomDialogContext);
+  customDialogContext.title = 'Editare releu';
+  customDialogContext.onSubmit = formSubmitHandler;
+
   function handleEditRelay() {
+    customDialogContext.text = initialRelay.title;
+    customDialogContext.dialogContent = (
+    <RelayForm data={relay}/>);
     customDialogContext.openDialog();
   }
 

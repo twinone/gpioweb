@@ -18,9 +18,6 @@ const CustomDialogProvider = (props) => {
     <CustomDialogContext.Provider value={customDialogContext}>
       <CustomDialog
         open={isOpen}
-        title={customDialogContext.title}
-        text={customDialogContext.text}
-        handleClose={customDialogContext.handleClose}
       >{customDialogContext.dialogContent}</CustomDialog>
       {props.children}
     </CustomDialogContext.Provider>

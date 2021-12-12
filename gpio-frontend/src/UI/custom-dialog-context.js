@@ -5,7 +5,9 @@ const CustomDialogContext = React.createContext({
     title: '',
     text: '',
     dialogContent: '',
-    handleClose: (data) => {},
+    data: '',
+    submitForm: () => {},
+    onSubmit: (data) => {},
     openDialog: () => {},
     closeDialog: () => {}
 });
